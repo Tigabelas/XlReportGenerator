@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>573fe70b-aa43-4dec-8df1-d51d4cc2799f</ProjectGuid>
+    <ProjectGuid>{7EF3BA06-B081-486F-BEA4-9E1EFB3AE43E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>XlReportGenerator.Test</RootNamespace>
@@ -50,8 +50,21 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="UnitTest1.cs" />
+    <Compile Include="ComplexClass1.cs" />
+    <Compile Include="ComplexClass2.cs" />
+    <Compile Include="ComplexClass3.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="SimpleClass1.cs" />
+    <Compile Include="SimpleClass2.cs" />
+    <Compile Include="XlReportGeneratorTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\XlReportGenerator\XlReportGenerator.csproj">
+      <Project>{c15ee20a-e3d0-42be-a0fa-f9ab08ba883c}</Project>
+      <Name>XlReportGenerator</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
