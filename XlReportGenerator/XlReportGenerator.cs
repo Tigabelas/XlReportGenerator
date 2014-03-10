@@ -242,13 +242,13 @@ namespace XlReportGenerator
         /// <typeparam name="T">Data Type which you want to write to excel file</typeparam>
         /// <param name="data">The data source which will be written to excel file</param>
         /// <returns></returns>
-        public static Int32 Generate(Object data, String tempGeneratedFolder, String sheetName, EnumExcelType excelType = EnumExcelType.NONE)
+        public static Int32 Generate(Object data, String tempGeneratedFolder, String sheetName, out String generatedFileName, EnumExcelType excelType = EnumExcelType.NONE)
         {
             Int32 result = 0;
             IWorkbook wBook = null;
             StringBuilder fullFileName = new StringBuilder();
             FileMode fsMode = FileMode.CreateNew;
-            String generatedFileName = String.Empty;
+            generatedFileName = String.Empty;
 
             if (ValidateTempGeneratedFolder(tempGeneratedFolder))
             {

@@ -16,7 +16,8 @@ namespace XlReportGenerator.Test
             SimpleClass1 data = new SimpleClass1()
             {
                 Field1 = "Field 1 Line 3",
-                Field2 = "Field 2 Line 3"
+                Field2 = "Field 2 Line 3",
+                Field4 = new Decimal(123.4)
             };
 
             XlReportGenerator.Generate(data, "D:\\Test", "Report 1234");
