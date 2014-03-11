@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace XlReportGenerator
 {
-    [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
     public sealed class Skipped : Attribute
     {
         public Boolean IsSkipped { get; set; }

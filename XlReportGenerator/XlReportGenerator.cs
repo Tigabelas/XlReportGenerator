@@ -75,10 +75,12 @@ namespace XlReportGenerator
         private static Boolean WriteToCell(ref ISheet sheet, Int32 row, Int32 column, Object data, String fieldFormat="")
         {
             Boolean result = false;
-            Type dataType = data.GetType();
+            
 
             if (sheet != null && data != null && row > -1 && column > -1)
             {
+                Type dataType = data.GetType();
+
                 // Write the column header
                 IRow wRow = sheet.GetRow(row);
                 ICell wCell = null;
@@ -86,7 +88,7 @@ namespace XlReportGenerator
                 if (wRow == null)
                     wRow = sheet.CreateRow(row);
 
-                wCell = wRow.GetCell(column);
+                wCell = wRow.GetCell(column);   
 
                 if (wCell == null)
                     wCell = wRow.CreateCell(column);
@@ -98,7 +100,8 @@ namespace XlReportGenerator
                     || dataType.Equals(typeof(Decimal)))
                 {
                     wCell.SetCellType(CellType.Numeric);
-                    wCell.SetCellValue(Convert.ToDouble(data));
+                    if (data != null)
+                        wCell.SetCellValue(Convert.ToDouble(data));
                 }
                 else if (dataType.Equals(typeof(Boolean)))
                 {
@@ -187,9 +190,13 @@ namespace XlReportGenerator
 
                                 if (skippedAttribute == null || (skippedAttribute != null && !skippedAttribute.IsSkipped))
                                 {
-                                    if (!SystemTypes.Contains(fieldType))
+                                    if (!SystemTypes.Contains(fieldType) && !fieldType.GetGenericTypeDefinition().Equals(typeof(Nullable<>))) 
                                     {
-                                        currentColumn = WriteDataToSheet(fieldValue, ref wBook, sheetName, currentColumn, currentRow, out maxRow);
+                                        Int32 curMaxRow = 0;
+                                        currentColumn = WriteDataToSheet(fieldValue, ref wBook, sheetName, currentColumn, currentRow, out curMaxRow);
+
+                                        if (curMaxRow > maxRow)
+                                            maxRow = curMaxRow;
                                     }
                                     else
                                     {
@@ -218,7 +225,7 @@ namespace XlReportGenerator
 
                             // add current row
                             if (currentRow == 0)
-                                currentRow = 1;  // we have write header and the first data row
+                                currentRow = 1;  // we must write header and the first data row
 
                             if (currentRow > maxRow)
                                 maxRow = currentRow;
@@ -295,7 +302,16 @@ namespace XlReportGenerator
 
                         //Write data to sheet
                         Int32 maxRow = 0;
-                        WriteDataToSheet(data, ref wBook, sheetName, 0, 0, out maxRow);
+
+                        try
+                        {
+                            WriteDataToSheet(data, ref wBook, sheetName, 0, 0, out maxRow);
+                        }
+                        catch
+                        {
+
+                        }
+                        
 
                         //Write and close the file.
                         wBook.Write(fs);

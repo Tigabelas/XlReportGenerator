@@ -20,7 +20,8 @@ namespace XlReportGenerator.Test
                 Field4 = new Decimal(123.4)
             };
 
-            XlReportGenerator.Generate(data, "D:\\Test", "Report 1234");
+            String generatedReportFileName;
+            XlReportGenerator.Generate(data, "D:\\Test", "Report 1234", out generatedReportFileName);
         }
 
         [TestMethod]
@@ -33,7 +34,8 @@ namespace XlReportGenerator.Test
                 BOD = new DateTime(1994, 04, 20)
             };
 
-            XlReportGenerator.Generate(data, "D:\\Test", "Report 1235");
+            String generatedReportFileName;
+            XlReportGenerator.Generate(data, "D:\\Test", "Report 1235", out generatedReportFileName);
         }
 
         [TestMethod]
@@ -61,7 +63,8 @@ namespace XlReportGenerator.Test
             });
 
 
-            XlReportGenerator.Generate(lstSimpleClass1, "D:\\Test", "Report 1235");
+            String generatedReportFileName;
+            XlReportGenerator.Generate(lstSimpleClass1, "D:\\Test", "Report 1235", out generatedReportFileName);
         }
 
         [TestMethod]
@@ -83,7 +86,8 @@ namespace XlReportGenerator.Test
                 SC3 = "Hello"
             };
 
-            XlReportGenerator.Generate(data, "D:\\Test", "Report 1235");
+            String generatedReportFileName;
+            XlReportGenerator.Generate(data, "D:\\Test", "Report 1235", out generatedReportFileName);
         }
 
         [TestMethod]
@@ -118,7 +122,8 @@ namespace XlReportGenerator.Test
                 SC2 = "Hello 3"
             };
 
-            XlReportGenerator.Generate(data, "D:\\Test", "Report 1235");
+            String generatedReportFileName;
+            XlReportGenerator.Generate(data, "D:\\Test", "Report 1235", out generatedReportFileName);
         }
 
         [TestMethod]
@@ -168,7 +173,8 @@ namespace XlReportGenerator.Test
                 SC2 = "Hello 32"
             });
 
-            XlReportGenerator.Generate(lstComplexClass2, "D:\\Test", "Report 1235");
+            String generatedReportFileName;
+            XlReportGenerator.Generate(lstComplexClass2, "D:\\Test", "Report 1235", out generatedReportFileName);
         }
     }
 }
