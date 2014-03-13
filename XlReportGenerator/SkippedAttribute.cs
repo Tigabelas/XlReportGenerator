@@ -9,11 +9,27 @@ namespace XlReportGenerator
     [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
     public sealed class Skipped : Attribute
     {
-        public Boolean IsSkipped { get; set; }
+        public String SkippedFor { get; set; }
 
-        public Skipped()
+        public Skipped(String skippedFor="")
         {
-            IsSkipped = true;
+            this.SkippedFor = skippedFor;
+        }
+
+        public Boolean IsSkipped(String sheetName) {
+            Boolean result = true;
+
+            if (String.IsNullOrWhiteSpace(this.SkippedFor))
+            {
+                result = false;
+            }
+            else
+            {
+                result = this.SkippedFor.Contains(sheetName);
+            }
+            
+
+            return result;
         }
     }
 }

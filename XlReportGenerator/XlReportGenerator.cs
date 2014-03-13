@@ -188,7 +188,7 @@ namespace XlReportGenerator
                                 Type fieldType = propInfo.PropertyType;
                                 Object fieldValue = propInfo.GetValue(data);
 
-                                if (skippedAttribute == null || (skippedAttribute != null && !skippedAttribute.IsSkipped))
+                                if (skippedAttribute == null || (skippedAttribute != null && !skippedAttribute.IsSkipped(sheetName)))
                                 {
                                     if (!SystemTypes.Contains(fieldType) && !fieldType.GetGenericTypeDefinition().Equals(typeof(Nullable<>))) 
                                     {
