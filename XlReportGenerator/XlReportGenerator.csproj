@@ -59,12 +59,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DateFormatAttribute.cs" />
+    <Compile Include="DateFormat.cs" />
     <Compile Include="EnumExcelType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SkippedAttribute.cs" />
+    <Compile Include="Skipped.cs" />
     <Compile Include="XlReportGenerator.cs" />
-    <Compile Include="ColumnNameAttribute.cs" />
+    <Compile Include="ColumnName.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Binaries\ICSharpCode.SharpZipLib.dll" />

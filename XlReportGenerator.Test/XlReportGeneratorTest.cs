@@ -176,5 +176,34 @@ namespace XlReportGenerator.Test
             String generatedReportFileName;
             XlReportGenerator.Generate(lstComplexClass2, "D:\\Test", "Report 1235", out generatedReportFileName);
         }
+
+        [TestMethod]
+        public void TestGeneratedRandomFileNameWithSimpleClass1AsDataWithTemplate()
+        {
+            List<SimpleClass1> datas = new List<SimpleClass1>()
+            {
+                new SimpleClass1()
+                {
+                    Field1 = "Soap",
+                    Field2 = "Bath Ware",
+                    Field4 = new Decimal(123.4)
+                },
+                new SimpleClass1()
+                {
+                    Field1 = "Shampoo",
+                    Field2 = "Bath Ware",
+                    Field4 = new Decimal(123.4)
+                },
+                new SimpleClass1()
+                {
+                    Field1 = "Shampoo",
+                    Field2 = "Bath Ware",
+                    Field4 = new Decimal(123.4)
+                },
+            };
+            
+            String generatedReportFileName;
+            XlReportGenerator.Generate(datas, "D:\\Test", "Sheet1", out generatedReportFileName, "Test", "Yusak", "Test Subject", "Test Keywords", @"D:\\Test\\Template.xlsx","", EnumExcelType.XLSX);
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿using NPOI.HSSF.UserModel;
+﻿using NPOI;
+using NPOI.HPSF;
+using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
@@ -97,7 +99,7 @@ namespace XlReportGenerator
                     || dataType.Equals(typeof(Int16))
                     || dataType.Equals(typeof(Int32))
                     || dataType.Equals(typeof(Int64))
-                    || dataType.Equals(typeof(Decimal)))
+                    || dataType.Equals(typeof(System.Decimal)))
                 {
                     wCell.SetCellType(CellType.Numeric);
                     if (data != null)
@@ -249,11 +251,22 @@ namespace XlReportGenerator
         /// <typeparam name="T">Data Type which you want to write to excel file</typeparam>
         /// <param name="data">The data source which will be written to excel file</param>
         /// <returns></returns>
-        public static Int32 Generate(Object data, String tempGeneratedFolder, String sheetName, out String generatedFileName, EnumExcelType excelType = EnumExcelType.NONE)
+        public static Int32 Generate(
+            Object data, 
+            String tempGeneratedFolder, 
+            String sheetName, 
+            out String generatedFileName,
+            string workbookTitle = "",
+            string workbookAuthor = "",
+            string workbookSubject = "",
+            string workbookKeywords = "",
+            string fromTemplateFileName = "",
+            string templatePassword = "",
+            EnumExcelType excelType = EnumExcelType.NONE)
         {
             Int32 result = 0;
             IWorkbook wBook = null;
-            StringBuilder fullFileName = new StringBuilder();
+            String fullFileName;
             FileMode fsMode = FileMode.CreateNew;
             generatedFileName = String.Empty;
 
@@ -273,49 +286,129 @@ namespace XlReportGenerator
                     else
                         generatedFileName += ".xls";
 
-                    fullFileName.Append(tempGeneratedFolder);
-                    fullFileName.Append("\\");
-                    fullFileName.Append(generatedFileName);
+                    fullFileName = Path.Combine(tempGeneratedFolder, generatedFileName).ToString();
+                    
 
                     if (File.Exists(fullFileName.ToString()))
                         fsMode = FileMode.Open;
                     else
                         fsMode = FileMode.CreateNew;
 
-                    using (FileStream fs = new FileStream(fullFileName.ToString(), fsMode, FileAccess.ReadWrite))
+                    if (String.IsNullOrWhiteSpace(fromTemplateFileName))
                     {
-                        // Check
-                        if (excelType == EnumExcelType.XLSX)
+                        using (FileStream fs = new FileStream(fullFileName.ToString(), fsMode, FileAccess.ReadWrite))
                         {
-                            if (fsMode == FileMode.Open)
+                            // Check
+                            if (excelType == EnumExcelType.XLSX)
+                            {
+                                if (fsMode == FileMode.Open)
+                                    wBook = new XSSFWorkbook(fs);
+                                else
+                                    wBook = new XSSFWorkbook();
+
+                                POIXMLProperties xmlProps = ((XSSFWorkbook)wBook).GetProperties();
+                                xmlProps.CoreProperties.Title = workbookTitle;
+                                xmlProps.CoreProperties.Creator = workbookAuthor;
+                                xmlProps.CoreProperties.Subject = workbookSubject;
+                                xmlProps.CoreProperties.Keywords = workbookKeywords;
+                            }
+                            else
+                            {
+                                if (fsMode == FileMode.Open)
+                                    wBook = new HSSFWorkbook(fs);
+                                else
+                                    wBook = new HSSFWorkbook();
+
+
+                                SummaryInformation summaryInformation = ((HSSFWorkbook)wBook).SummaryInformation;
+                                if (summaryInformation == null)
+                                {
+                                    ((HSSFWorkbook)wBook).CreateInformationProperties();
+                                    summaryInformation = ((HSSFWorkbook)wBook).SummaryInformation;
+                                }
+
+                                summaryInformation.Title = workbookTitle;
+                                summaryInformation.Author = workbookAuthor;
+                                summaryInformation.Subject = workbookSubject;
+                                summaryInformation.Keywords = workbookKeywords;
+                            }
+                            
+
+                            //Write data to sheet
+                            Int32 maxRow = 0;
+
+                            try
+                            {
+                                WriteDataToSheet(data, ref wBook, sheetName, 0, 0, out maxRow);
+                            }
+                            catch
+                            {
+
+                            }
+
+
+                            //Write and close the file.
+                            wBook.Write(fs);
+                            fs.Close();
+                        }
+                    }
+                    else
+                    {
+                        FileInfo fileTemplate = new FileInfo(fromTemplateFileName);
+                        if (!fileTemplate.Exists)
+                        {
+                            throw new Exception("File template doesn't exists.");
+                        }
+
+                        using (FileStream fs = new FileStream(fromTemplateFileName.ToString(), FileMode.Open, FileAccess.ReadWrite))
+                        {
+                            // Check
+                            if (excelType == EnumExcelType.XLSX)
+                            {
                                 wBook = new XSSFWorkbook(fs);
+
+                                POIXMLProperties xmlProps = ((XSSFWorkbook)wBook).GetProperties();
+                                xmlProps.CoreProperties.Title = workbookTitle;
+                                xmlProps.CoreProperties.Creator = workbookAuthor;
+                                xmlProps.CoreProperties.Subject = workbookSubject;
+                                xmlProps.CoreProperties.Keywords = workbookKeywords;
+                            }
                             else
-                                wBook = new XSSFWorkbook();
-                        }
-                        else
-                        {
-                            if (fsMode == FileMode.Open)
+                            {
                                 wBook = new HSSFWorkbook(fs);
-                            else
-                                wBook = new HSSFWorkbook();
+                                
+                                SummaryInformation summaryInformation = ((HSSFWorkbook)wBook).SummaryInformation;
+                                if (summaryInformation == null)
+                                {
+                                    ((HSSFWorkbook)wBook).CreateInformationProperties();
+                                    summaryInformation = ((HSSFWorkbook)wBook).SummaryInformation;
+                                }
+                                    
+                                summaryInformation.Title = workbookTitle;
+                                summaryInformation.Author = workbookAuthor;
+                                summaryInformation.Subject = workbookSubject;
+                                summaryInformation.Keywords = workbookKeywords;
+                            }
+
+                            //Write data to sheet
+                            Int32 maxRow = 0;
+
+                            try
+                            {
+                                WriteDataToSheet(data, ref wBook, sheetName, 0, 0, out maxRow);
+                            }
+                            catch
+                            {
+
+                            }
+
+
+                            //Write and close the file.
+                            FileStream fsOut = new FileStream(fullFileName, FileMode.CreateNew, FileAccess.ReadWrite);
+                            wBook.Write(fsOut);
+                            fs.Close();
+                            fsOut.Close();
                         }
-
-                        //Write data to sheet
-                        Int32 maxRow = 0;
-
-                        try
-                        {
-                            WriteDataToSheet(data, ref wBook, sheetName, 0, 0, out maxRow);
-                        }
-                        catch
-                        {
-
-                        }
-                        
-
-                        //Write and close the file.
-                        wBook.Write(fs);
-                        fs.Close();
                     }
                 }
                 catch
