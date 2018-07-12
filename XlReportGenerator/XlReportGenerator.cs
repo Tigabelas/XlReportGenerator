@@ -119,6 +119,15 @@ namespace XlReportGenerator
                         wCell.SetCellValue(((DateTime)data).ToString("dd MMM yyyy hh:mm:ss"));
                     
                 }
+                else if (dataType.Equals(typeof(DateTimeOffset)))
+                {
+                    wCell.SetCellType(CellType.String);
+                    if (!String.IsNullOrWhiteSpace(fieldFormat))
+                        wCell.SetCellValue(((DateTimeOffset)data).ToString(fieldFormat));
+                    else
+                        wCell.SetCellValue(((DateTimeOffset)data).ToString("dd MMM yyyy hh:mm:ss"));
+
+                }
                 else if (dataType.Equals(typeof(String)))
                 {
                     wCell.SetCellType(CellType.String);

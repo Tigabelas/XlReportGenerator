@@ -15,7 +15,7 @@ namespace XlReportGenerator.Test
         public Int64 Age { get; set; }
 
         [ColumnName("Date of Birth")]
-        [DateFormat("dd MMM yyyy")]
-        public DateTime BOD { get; set; }
+        [DateFormat("dd-MMM-yyyy")]
+        public DateTimeOffset? BOD { get; set; }
     }
 }

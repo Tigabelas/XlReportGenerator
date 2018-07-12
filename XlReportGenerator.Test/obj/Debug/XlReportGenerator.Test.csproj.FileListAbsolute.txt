@@ -1,0 +1,17 @@
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Debug\XlReportGenerator.Test.dll
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Debug\XlReportGenerator.Test.pdb
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Debug\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Debug\XlReportGenerator.dll
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Debug\NPOI.dll
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Debug\NPOI.OOXML.dll
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Debug\ICSharpCode.SharpZipLib.dll
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Debug\NPOI.OpenXmlFormats.dll
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Debug\NPOI.OpenXml4Net.dll
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Debug\XlReportGenerator.pdb
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Debug\NPOI.xml
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Debug\NPOI.OOXML.xml
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Debug\NPOI.OpenXml4Net.xml
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\obj\Debug\XlReportGenerator.Test.csprojResolveAssemblyReference.cache
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\obj\Debug\XlReportGenerator.Test.csproj.CoreCompileInputs.cache
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\obj\Debug\XlReportGenerator.Test.dll
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\obj\Debug\XlReportGenerator.Test.pdb
