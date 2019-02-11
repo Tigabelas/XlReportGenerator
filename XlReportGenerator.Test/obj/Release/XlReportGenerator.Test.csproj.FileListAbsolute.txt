@@ -11,7 +11,8 @@ D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Relea
 D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Release\NPOI.xml
 D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Release\NPOI.OOXML.xml
 D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\bin\Release\NPOI.OpenXml4Net.xml
-D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\obj\Release\XlReportGenerator.Test.csprojResolveAssemblyReference.cache
 D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\obj\Release\XlReportGenerator.Test.csproj.CoreCompileInputs.cache
 D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\obj\Release\XlReportGenerator.Test.dll
 D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\obj\Release\XlReportGenerator.Test.pdb
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\obj\Release\XlReportGenerator.Test.csprojAssemblyReference.cache
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator.Test\obj\Release\XlReportGenerator.Test.csproj.CopyComplete

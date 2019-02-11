@@ -11,3 +11,4 @@ D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator\bin\Release\NP
 D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator\obj\Release\XlReportGenerator.csproj.CoreCompileInputs.cache
 D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator\obj\Release\XlReportGenerator.dll
 D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator\obj\Release\XlReportGenerator.pdb
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator\obj\Release\XlReportGenerator.csproj.CopyComplete

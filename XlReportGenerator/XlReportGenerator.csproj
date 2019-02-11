@@ -59,8 +59,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HyperlinkFormat.cs" />
     <Compile Include="DateFormat.cs" />
     <Compile Include="EnumExcelType.cs" />
+    <Compile Include="ObjectDataWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Skipped.cs" />
     <Compile Include="XlReportGenerator.cs" />

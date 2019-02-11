@@ -19,5 +19,8 @@ namespace XlReportGenerator.Test
 
         [ColumnName("Kolom 4")]
         public Decimal Field4 { get; set; }
+
+        [HyperlinkFormat(true)]
+        public String Field5 { get; set; }
     }
 }

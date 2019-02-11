@@ -17,7 +17,8 @@ namespace XlReportGenerator.Test
             {
                 Field1 = "Field 1 Line 3",
                 Field2 = "Field 2 Line 3",
-                Field4 = new Decimal(123.4)
+                Field4 = new Decimal(123.4),
+                Field5 = "Hello"
             };
 
             String generatedReportFileName;

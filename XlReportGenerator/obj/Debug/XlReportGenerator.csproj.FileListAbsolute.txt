@@ -11,4 +11,5 @@ D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator\bin\Debug\NPOI
 D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator\bin\Debug\NPOI.OpenXml4Net.xml
 D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator\obj\Debug\XlReportGenerator.dll
 D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator\obj\Debug\XlReportGenerator.pdb
-D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator\obj\Debug\XlReportGenerator.csprojResolveAssemblyReference.cache
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator\obj\Debug\XlReportGenerator.csprojAssemblyReference.cache
+D:\Works\XlReportGenerator4.0\XlReportGenerator\XlReportGenerator\obj\Debug\XlReportGenerator.csproj.CopyComplete
