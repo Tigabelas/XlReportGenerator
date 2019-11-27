@@ -214,7 +214,18 @@ namespace XlReportGenerator
 
                                 if (skippedAttribute == null || (skippedAttribute != null && !skippedAttribute.IsSkipped(sheetName)))
                                 {
-                                    if (!SystemTypes.Contains(fieldType) && !fieldType.GetGenericTypeDefinition().Equals(typeof(Nullable<>))) 
+
+                                    bool isNullable = false;
+                                    try
+                                    {
+                                        isNullable = fieldType.GetGenericTypeDefinition().Equals(typeof(Nullable<>));
+                                    }
+                                    catch
+                                    {
+
+                                    }
+
+                                    if (!SystemTypes.Contains(fieldType) && !isNullable) 
                                     {
                                         Int32 curMaxRow = 0;
                                         currentColumn = WriteDataToSheet(fieldValue, ref wBook, sheetName, currentColumn, currentRow, out curMaxRow);
@@ -370,7 +381,16 @@ namespace XlReportGenerator
 
 
                             //Write and close the file.
+                            if (excelType == EnumExcelType.XLSX)
+                            {
+                                XSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
+                            }
+                            else
+                            {
+                                HSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
+                            }
                             wBook.Write(fs);
+                            
                             fs.Close();
                         }
                     }
@@ -427,7 +447,16 @@ namespace XlReportGenerator
 
                             //Write and close the file.
                             FileStream fsOut = new FileStream(fullFileName, FileMode.CreateNew, FileAccess.ReadWrite);
+                            if (excelType == EnumExcelType.XLSX)
+                            {
+                                XSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
+                            }
+                            else
+                            {
+                                HSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
+                            }
                             wBook.Write(fsOut);
+
                             fs.Close();
                             fsOut.Close();
                         }
@@ -545,6 +574,14 @@ namespace XlReportGenerator
 
 
                             //Write and close the file.
+                            if (excelType == EnumExcelType.XLSX)
+                            {
+                                XSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
+                            }
+                            else
+                            {
+                                HSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
+                            }
                             wBook.Write(fs);
                             fs.Close();
                         }
@@ -606,6 +643,14 @@ namespace XlReportGenerator
 
                             //Write and close the file.
                             FileStream fsOut = new FileStream(fullFileName, FileMode.CreateNew, FileAccess.ReadWrite);
+                            if (excelType == EnumExcelType.XLSX)
+                            {
+                                XSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
+                            }
+                            else
+                            {
+                                HSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
+                            }
                             wBook.Write(fsOut);
                             fs.Close();
                             fsOut.Close();
