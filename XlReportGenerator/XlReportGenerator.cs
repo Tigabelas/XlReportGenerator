@@ -154,7 +154,7 @@ namespace XlReportGenerator
 
         private static Int32 WriteDataToSheet(Object data, ref IWorkbook wBook, String sheetName, Int32 startColumn, Int32 startRow, out Int32 maxRow)
         {
-            Int32 result = 0; // row affected 
+            Int32 result = startColumn; // row affected 
             Int32 currentRow = startRow;
             Int32 currentColumn = startColumn;
 
@@ -270,6 +270,7 @@ namespace XlReportGenerator
                 }
                 result = currentColumn;
             }
+         
 
             return result;
         }
@@ -374,9 +375,9 @@ namespace XlReportGenerator
                             {
                                 WriteDataToSheet(data, ref wBook, sheetName, 0, 0, out maxRow);
                             }
-                            catch
+                            catch (Exception e)
                             {
-
+                                var a = e;
                             }
 
 
@@ -439,9 +440,9 @@ namespace XlReportGenerator
                             {
                                 WriteDataToSheet(data, ref wBook, sheetName, 0, 0, out maxRow);
                             }
-                            catch
+                            catch (Exception e)
                             {
-
+                                var a = e;
                             }
 
 
@@ -462,7 +463,7 @@ namespace XlReportGenerator
                         }
                     }
                 }
-                catch
+                catch (Exception e)
                 {
                     throw;
                 }
