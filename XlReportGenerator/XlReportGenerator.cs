@@ -1,8 +1,4 @@
-﻿using NPOI;
-using NPOI.HPSF;
-using NPOI.HSSF.UserModel;
-using NPOI.SS.UserModel;
-using NPOI.XSSF.UserModel;
+﻿using OfficeOpenXml;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace XlReportGenerator
@@ -29,8 +26,8 @@ namespace XlReportGenerator
                 return _systemTypes;
             }
         }
-
         #endregion
+
         #region "Private Methods"
         /// <summary>
         /// Generate random filename
@@ -74,239 +71,216 @@ namespace XlReportGenerator
             return result;
         }
 
-        private static Boolean WriteToCell(ref ISheet sheet, Int32 row, Int32 column, Object data, String fieldFormat="", Boolean isHyperlink = false)
+        private static Boolean WriteToCell(ref ExcelWorksheet wBook, Int32 row, Int32 col, Object data, String fieldFormat = "", Boolean isHyperlink = false)
         {
-            Boolean result = false;
-            
+            if (data == null)
+                return false;
 
-            if (sheet != null && data != null && row > -1 && column > -1)
+            Type dataType = data.GetType();
+
+            if (dataType.Equals(typeof(Double))
+                                            || dataType.Equals(typeof(Int16))
+                                            || dataType.Equals(typeof(Int32))
+                                            || dataType.Equals(typeof(Int64))
+                                            || dataType.Equals(typeof(Decimal)))
             {
-                Type dataType = data.GetType();
-
-                // Write the column header
-                IRow wRow = sheet.GetRow(row);
-                ICell wCell = null;
-
-                if (wRow == null)
-                    wRow = sheet.CreateRow(row);
-
-                wCell = wRow.GetCell(column);   
-
-                if (wCell == null)
-                    wCell = wRow.CreateCell(column);
-
-                if (dataType.Equals(typeof(Double))
-                    || dataType.Equals(typeof(Int16))
-                    || dataType.Equals(typeof(Int32))
-                    || dataType.Equals(typeof(Int64))
-                    || dataType.Equals(typeof(System.Decimal)))
+                wBook.Cells[row, col].Value = Convert.ToDouble(data);
+            }
+            else if (dataType.Equals(typeof(Boolean)))
+            {
+                wBook.Cells[row, col].Value = (Boolean)data;
+            }
+            else if (dataType.Equals(typeof(DateTime)))
+            {
+                if (!String.IsNullOrWhiteSpace(fieldFormat))
                 {
-                    wCell.SetCellType(CellType.Numeric);
-                    if (data != null)
-                        wCell.SetCellValue(Convert.ToDouble(data));
+                    wBook.Cells[row, col].Value = ((DateTime)data).ToString(fieldFormat);
                 }
-                else if (dataType.Equals(typeof(Boolean)))
+                else
                 {
-                    wCell.SetCellType(CellType.Boolean);
-                    wCell.SetCellValue((Boolean)data);
+                    wBook.Cells[row, col].Value = ((DateTime)data).ToString("dd MMM yyyy hh:mm:ss");
                 }
-                else if (dataType.Equals(typeof(DateTime)))
+            }
+            else if (dataType.Equals(typeof(String)))
+            {
+                if (isHyperlink == false)
+                    wBook.Cells[row, col].Value = (String)data;
+                else
                 {
-                    wCell.SetCellType(CellType.String);
-                    if (!String.IsNullOrWhiteSpace(fieldFormat))
-                        wCell.SetCellValue(((DateTime)data).ToString(fieldFormat));
-                    else
-                        wCell.SetCellValue(((DateTime)data).ToString("dd MMM yyyy hh:mm:ss"));
-                    
-                }
-                else if (dataType.Equals(typeof(DateTimeOffset)))
-                {
-                    wCell.SetCellType(CellType.String);
-                    if (!String.IsNullOrWhiteSpace(fieldFormat))
-                        wCell.SetCellValue(((DateTimeOffset)data).ToString(fieldFormat));
-                    else
-                        wCell.SetCellValue(((DateTimeOffset)data).ToString("dd MMM yyyy hh:mm:ss"));
-
-                }
-                else if (dataType.Equals(typeof(String)))
-                {
-                    if (isHyperlink == false)
+                    wBook.Cells[row, col].Value = (String)data;
+                    try
                     {
-                        wCell.SetCellType(CellType.String);
-                        wCell.SetCellValue((String)data);
+                        Uri targetUrl;
+                        if (Uri.TryCreate((String)data, UriKind.RelativeOrAbsolute, out targetUrl))
+                        {
+                            wBook.Cells[row, col].Hyperlink = targetUrl;
+                        }
                     }
-                    else
+                    catch
                     {
-                        wCell.SetCellType(CellType.String);
-                        wCell.SetCellValue((String)data);
-                        HSSFHyperlink link = new HSSFHyperlink(HyperlinkType.Url);
-                        link.Address = ((String)data);
-                        wCell.Hyperlink = link;
-                    }
-                    
-                }
 
-                result = true;
+                    }
+
+                }
             }
 
-            return result;
+            return true;
         }
 
-        private static Int32 WriteDataToSheet(Object data, ref IWorkbook wBook, String sheetName, Int32 startColumn, Int32 startRow, out Int32 maxRow)
+        private static Int32 WriteDataToSheet(Object data, ref ExcelWorksheet wBook, String sheetName, Int32 startColumn, Int32 startRow, out Int32 maxRow)
         {
-            Int32 result = 0; // row affected 
+            Int32 result = startColumn; // row affected 
             Int32 currentRow = startRow;
             Int32 currentColumn = startColumn;
 
             maxRow = 0;
 
             // check whether the sheet is already exis or not
-            if (data != null && wBook != null && !String.IsNullOrWhiteSpace(sheetName))
+            if (data != null && wBook != null)
             {
-                if (wBook.GetSheetIndex(sheetName) < 0)
-                    wBook.CreateSheet(sheetName);
-
-                ISheet sheet = wBook.GetSheet(sheetName);
-
-                if (sheet != null)
+                if (data.GetType().GetMethod("GetEnumerator") != null)
                 {
-                    if (data.GetType().GetMethod("GetEnumerator") != null )
+                    IEnumerator<Object> enumerator = (IEnumerator<Object>)data.GetType().GetMethod("GetEnumerator").Invoke(data, null);
+
+                    Int32 count = (Int32)data.GetType().GetProperty("Count").GetValue(data);
+
+                    Int32 i = 0;
+
+                    while (enumerator.MoveNext())
                     {
-                        IEnumerator enumerator = (IEnumerator) data.GetType().GetMethod("GetEnumerator").Invoke(data, null);
-                        Int32 count = (Int32) data.GetType().GetProperty("Count").GetValue(data);
+                        currentColumn = WriteDataToSheet(enumerator.Current, ref wBook, sheetName, currentColumn, currentRow, out currentRow);
 
-                        Int32 i = 0;
-                        
-                        while (enumerator.MoveNext())
+                        if (i < count - 1)
                         {
-                            currentColumn = WriteDataToSheet(enumerator.Current, ref wBook, sheetName, currentColumn, currentRow, out currentRow);
-
-                            if (i < count - 1)
-                            {
-                                currentRow++;
-                                currentColumn = startColumn;
-                            }
-
-                            if (currentRow > maxRow)
-                                maxRow = currentRow;
-                            else
-                                currentRow = maxRow;
-
-                            i++;
+                            currentRow++;
+                            currentColumn = startColumn;
                         }
+
+                        if (currentRow > maxRow)
+                            maxRow = currentRow;
+                        else
+                            currentRow = maxRow;
+
+                        i++;
                     }
-                    else
+                }
+                else
+                {
+                    PropertyInfo[] propInfos = data.GetType().GetProperties();
+
+                    if (propInfos != null && propInfos.Count() > 0)
                     {
-                        PropertyInfo [] propInfos = data.GetType().GetProperties();
-
-                        if (propInfos != null && propInfos.Count() > 0)
+                        foreach (var propInfo in propInfos)
                         {
-                            foreach (var propInfo in propInfos)
+                            ColumnName colNameAttribute = propInfo.GetCustomAttribute<ColumnName>(true);
+                            Skipped skippedAttribute = propInfo.GetCustomAttribute<Skipped>(true);
+                            String fieldFormat = (propInfo.GetCustomAttribute<DateFormat>(true) != null) ? propInfo.GetCustomAttribute<DateFormat>(true).Format : "";
+                            Boolean isHyperlink = (propInfo.GetCustomAttribute<HyperlinkFormat>(true) != null) ? propInfo.GetCustomAttribute<HyperlinkFormat>(true).IsHyperlink : false;
+                            String columnName = "";
+                            String fieldName = propInfo.Name;
+                            Type fieldType = propInfo.PropertyType;
+                            Object fieldValue = propInfo.GetValue(data);
+                            Type dataType = data.GetType();
+
+                            if (skippedAttribute == null || (skippedAttribute != null && skippedAttribute.IsSkipped(sheetName)))
                             {
-                                ColumnName colNameAttribute = propInfo.GetCustomAttribute<ColumnName>(true);
-                                Skipped skippedAttribute = propInfo.GetCustomAttribute<Skipped>(true);
-                                String fieldFormat = (propInfo.GetCustomAttribute<DateFormat>(true) != null) ? propInfo.GetCustomAttribute<DateFormat>(true).Format : "";
-                                Boolean isHyperlink = (propInfo.GetCustomAttribute<HyperlinkFormat>(true) != null) ? propInfo.GetCustomAttribute<HyperlinkFormat>(true).IsHyperlink : false;
-                                String columnName = "";
-                                String fieldName = propInfo.Name;
-                                Type fieldType = propInfo.PropertyType;
-                                Object fieldValue = propInfo.GetValue(data);
+                                bool isTypeNullable = false;
 
-                                if (skippedAttribute == null || (skippedAttribute != null && !skippedAttribute.IsSkipped(sheetName)))
+                                if (Nullable.GetUnderlyingType(fieldType) != null)
                                 {
+                                    // It's nullable
+                                    isTypeNullable = true;
+                                }
 
-                                    bool isNullable = false;
-                                    try
-                                    {
-                                        isNullable = fieldType.GetGenericTypeDefinition().Equals(typeof(Nullable<>));
-                                    }
-                                    catch
-                                    {
+                                if (!SystemTypes.Contains(fieldType) && fieldType.IsClass && !isTypeNullable)
+                                {
+                                    Int32 curMaxRow = 0;
+                                    currentColumn = WriteDataToSheet(fieldValue, ref wBook, sheetName, currentColumn, currentRow, out curMaxRow);
 
-                                    }
-
-                                    if (!SystemTypes.Contains(fieldType) && !isNullable) 
-                                    {
-                                        Int32 curMaxRow = 0;
-                                        currentColumn = WriteDataToSheet(fieldValue, ref wBook, sheetName, currentColumn, currentRow, out curMaxRow);
-
-                                        if (curMaxRow > maxRow)
-                                            maxRow = curMaxRow;
-                                    }
+                                    if (curMaxRow > maxRow)
+                                        maxRow = curMaxRow;
+                                }
+                                else
+                                {
+                                    // Get Attributes[
+                                    if (colNameAttribute != null)
+                                        columnName = colNameAttribute.Name;
                                     else
+                                        columnName = propInfo.Name;
+
+                                    // write header if this is the first row
+                                    if (currentRow == 1)
                                     {
-                                        // Get Attributes[
-
-                                        if (colNameAttribute != null)
-                                            columnName = colNameAttribute.Name;
-                                        else
-                                            columnName = propInfo.Name;
-
-                                        // write header if this is the first row
-                                        if (currentRow == 0)
-                                            WriteToCell(ref sheet, currentRow, currentColumn, columnName);
-
-                                        // write the data
-                                        if (currentRow == 0)
-                                            WriteToCell(ref sheet, currentRow + 1, currentColumn, fieldValue, fieldFormat, isHyperlink);
-                                        else
-                                            WriteToCell(ref sheet, currentRow, currentColumn, fieldValue, fieldFormat, isHyperlink);
-
-                                        currentColumn++;
-
+                                        WriteToCell(ref wBook, currentRow, currentColumn, columnName, fieldFormat, isHyperlink);
                                     }
+
+                                    // write the data
+                                    if (currentRow == 1)
+                                        WriteToCell(ref wBook, currentRow + 1, currentColumn, fieldValue, fieldFormat, isHyperlink);
+                                    else
+                                        WriteToCell(ref wBook, currentRow, currentColumn, fieldValue, fieldFormat, isHyperlink);
+
+                                    currentColumn++;
                                 }
                             }
-
-                            // add current row
-                            if (currentRow == 0)
-                                currentRow = 1;  // we must write header and the first data row
-
-                            if (currentRow > maxRow)
-                                maxRow = currentRow;
                         }
+
+                        if (currentRow == 1)
+                            currentRow = 2;  // we must write header and the first data row
+
+                        if (currentRow > maxRow)
+                            maxRow = currentRow;
                     }
-                    
                 }
+
+
                 result = currentColumn;
             }
 
             return result;
         }
-
         #endregion
-
 
         #region "Public Methods"
         /// <summary>
-        /// 
+        /// To write from data wrapper to excel file, you can either use template file or generate to new file
         /// </summary>
-        /// <typeparam name="T">Data Type which you want to write to excel file</typeparam>
-        /// <param name="data">The data source which will be written to excel file</param>
+        /// <param name="data">IEnumerable object to be written</param>
+        /// <param name="tempGeneratedFolder">The folder which generated file will be placed.</param>
+        /// <param name="sheetName">Sheet name where data should be written</param>
+        /// <param name="generatedFileName">Generated file name, will be out to this variable</param>
+        /// <param name="workbookTitle">Title for the work book.</param>
+        /// <param name="workbookAuthor">The author of the file</param>
+        /// <param name="workbookSubject">The subject work book</param>
+        /// <param name="workbookKeywords">The keyword</param>
+        /// <param name="fromTemplateFileName">Fill with the template file name, if you want to generate from another file</param>
+        /// <param name="templatePassword">Fill with the template password if any</param>
+        /// <param name="excelType">Output excel file type</param>
         /// <returns></returns>
-        public static Int32 Generate(
-            Object data, 
-            String tempGeneratedFolder, 
-            String sheetName, 
-            out String generatedFileName,
+        public static Int32 Generate(Object data,
+            string tempGeneratedFolder,
+            string sheetName,
+            out string generatedFileName,
             string workbookTitle = "",
             string workbookAuthor = "",
             string workbookSubject = "",
             string workbookKeywords = "",
             string fromTemplateFileName = "",
             string templatePassword = "",
-            EnumExcelType excelType = EnumExcelType.NONE)
+            string outputFileName = "",
+            EnumExcelType excelType = EnumExcelType.XLSX)
         {
             Int32 result = 0;
-            IWorkbook wBook = null;
             String fullFileName;
-            FileMode fsMode = FileMode.CreateNew;
             generatedFileName = String.Empty;
 
             if (ValidateTempGeneratedFolder(tempGeneratedFolder))
             {
-                generatedFileName = GenerateRandomFileName();
-                
+                if (String.IsNullOrWhiteSpace(outputFileName))
+                    generatedFileName = GenerateRandomFileName();
+                else
+                    generatedFileName = outputFileName;
+
                 //Create new excel file based on Excel 97/2003
                 try
                 {
@@ -319,79 +293,34 @@ namespace XlReportGenerator
                     else
                         generatedFileName += ".xls";
 
-                    fullFileName = Path.Combine(tempGeneratedFolder, generatedFileName).ToString();
-                    
+                    fullFileName = Path.Combine(tempGeneratedFolder, generatedFileName);
 
-                    if (File.Exists(fullFileName.ToString()))
-                        fsMode = FileMode.Open;
-                    else
-                        fsMode = FileMode.CreateNew;
+                    FileInfo fileOutput = new FileInfo(fullFileName.ToString());
+
+                    if (fileOutput.Exists)
+                    {
+                        fileOutput.Delete();
+                        fileOutput = new FileInfo(fullFileName.ToString());
+                    }
+
+                    Int32 maxRow = 0;
 
                     if (String.IsNullOrWhiteSpace(fromTemplateFileName))
                     {
-                        using (FileStream fs = new FileStream(fullFileName.ToString(), fsMode, FileAccess.ReadWrite))
+                        using (ExcelPackage package = new ExcelPackage())
                         {
-                            // Check
-                            if (excelType == EnumExcelType.XLSX)
-                            {
-                                if (fsMode == FileMode.Open)
-                                    wBook = new XSSFWorkbook(fs);
-                                else
-                                    wBook = new XSSFWorkbook();
+                            package.Workbook.Properties.Title = workbookTitle;
+                            package.Workbook.Properties.Author = workbookAuthor;
+                            package.Workbook.Properties.Subject = workbookSubject;
+                            package.Workbook.Properties.Keywords = workbookKeywords;
 
-                                POIXMLProperties xmlProps = ((XSSFWorkbook)wBook).GetProperties();
-                                xmlProps.CoreProperties.Title = workbookTitle;
-                                xmlProps.CoreProperties.Creator = workbookAuthor;
-                                xmlProps.CoreProperties.Subject = workbookSubject;
-                                xmlProps.CoreProperties.Keywords = workbookKeywords;
-                            }
-                            else
-                            {
-                                if (fsMode == FileMode.Open)
-                                    wBook = new HSSFWorkbook(fs);
-                                else
-                                    wBook = new HSSFWorkbook();
+                            // add a new worksheet to the empty workbook
+                            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add(sheetName);
+                            WriteDataToSheet(data, ref worksheet, sheetName, 1, 1, out maxRow);
 
+                            package.SaveAs(fileOutput);
 
-                                SummaryInformation summaryInformation = ((HSSFWorkbook)wBook).SummaryInformation;
-                                if (summaryInformation == null)
-                                {
-                                    ((HSSFWorkbook)wBook).CreateInformationProperties();
-                                    summaryInformation = ((HSSFWorkbook)wBook).SummaryInformation;
-                                }
-
-                                summaryInformation.Title = workbookTitle;
-                                summaryInformation.Author = workbookAuthor;
-                                summaryInformation.Subject = workbookSubject;
-                                summaryInformation.Keywords = workbookKeywords;
-                            }
-                            
-
-                            //Write data to sheet
-                            Int32 maxRow = 0;
-
-                            try
-                            {
-                                WriteDataToSheet(data, ref wBook, sheetName, 0, 0, out maxRow);
-                            }
-                            catch
-                            {
-
-                            }
-
-
-                            //Write and close the file.
-                            if (excelType == EnumExcelType.XLSX)
-                            {
-                                XSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
-                            }
-                            else
-                            {
-                                HSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
-                            }
-                            wBook.Write(fs);
-                            
-                            fs.Close();
+                            result = 1;
                         }
                     }
                     else
@@ -402,65 +331,27 @@ namespace XlReportGenerator
                             throw new Exception("File template doesn't exists.");
                         }
 
-                        using (FileStream fs = new FileStream(fromTemplateFileName.ToString(), FileMode.Open, FileAccess.ReadWrite))
+                        using (ExcelPackage package = new ExcelPackage(fileTemplate))
                         {
-                            // Check
-                            if (excelType == EnumExcelType.XLSX)
-                            {
-                                wBook = new XSSFWorkbook(fs);
+                            package.Workbook.Properties.Title = workbookTitle;
+                            package.Workbook.Properties.Author = workbookAuthor;
+                            package.Workbook.Properties.Subject = workbookSubject;
+                            package.Workbook.Properties.Keywords = workbookKeywords;
 
-                                POIXMLProperties xmlProps = ((XSSFWorkbook)wBook).GetProperties();
-                                xmlProps.CoreProperties.Title = workbookTitle;
-                                xmlProps.CoreProperties.Creator = workbookAuthor;
-                                xmlProps.CoreProperties.Subject = workbookSubject;
-                                xmlProps.CoreProperties.Keywords = workbookKeywords;
-                            }
+                            // add a new worksheet to the empty workbook
+                            ExcelWorksheet worksheet = null;
+                            if (package.Workbook.Worksheets.Any(x => x.Name.Equals(sheetName)))
+                                worksheet = package.Workbook.Worksheets[sheetName];
                             else
-                            {
-                                wBook = new HSSFWorkbook(fs);
-                                
-                                SummaryInformation summaryInformation = ((HSSFWorkbook)wBook).SummaryInformation;
-                                if (summaryInformation == null)
-                                {
-                                    ((HSSFWorkbook)wBook).CreateInformationProperties();
-                                    summaryInformation = ((HSSFWorkbook)wBook).SummaryInformation;
-                                }
-                                    
-                                summaryInformation.Title = workbookTitle;
-                                summaryInformation.Author = workbookAuthor;
-                                summaryInformation.Subject = workbookSubject;
-                                summaryInformation.Keywords = workbookKeywords;
-                            }
+                                worksheet = package.Workbook.Worksheets.Add(sheetName);
 
-                            //Write data to sheet
-                            Int32 maxRow = 0;
+                            WriteDataToSheet(data, ref worksheet, sheetName, 1, 1, out maxRow);
+                            package.SaveAs(fileOutput);
 
-                            try
-                            {
-                                WriteDataToSheet(data, ref wBook, sheetName, 0, 0, out maxRow);
-                            }
-                            catch
-                            {
-
-                            }
-
-
-                            //Write and close the file.
-                            FileStream fsOut = new FileStream(fullFileName, FileMode.CreateNew, FileAccess.ReadWrite);
-                            if (excelType == EnumExcelType.XLSX)
-                            {
-                                XSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
-                            }
-                            else
-                            {
-                                HSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
-                            }
-                            wBook.Write(fsOut);
-
-                            fs.Close();
-                            fsOut.Close();
+                            result = 1;
                         }
                     }
+
                 }
                 catch
                 {
@@ -472,33 +363,32 @@ namespace XlReportGenerator
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="T">Data Type which you want to write to excel file</typeparam>
-        /// <param name="data">The data source which will be written to excel file</param>
-        /// <returns></returns>
-        public static Int32 GenerateEx(
-            IEnumerable<ObjectDataWrapper> datas,
-            String tempGeneratedFolder,
-            out String generatedFileName,
-            string workbookTitle = "",
-            string workbookAuthor = "",
-            string workbookSubject = "",
-            string workbookKeywords = "",
+
+        public static Int32 GenerateEx(IEnumerable<ObjectDataWrapper> datas,
+            string tempGeneratedFolder,
+            out string generatedFileName,
+            string workbookTitle,
+            string workbookAuthor,
+            string workbookSubject,
+            string workbookKeywords,
             string fromTemplateFileName = "",
             string templatePassword = "",
-            EnumExcelType excelType = EnumExcelType.NONE)
+            string outputFileName = "",
+            EnumExcelType excelType = EnumExcelType.XLSX)
         {
             Int32 result = 0;
-            IWorkbook wBook = null;
             String fullFileName;
-            FileMode fsMode = FileMode.CreateNew;
             generatedFileName = String.Empty;
+
+            if (datas == null)
+                return 0;
 
             if (ValidateTempGeneratedFolder(tempGeneratedFolder))
             {
-                generatedFileName = GenerateRandomFileName();
+                if (String.IsNullOrWhiteSpace(outputFileName))
+                    generatedFileName = GenerateRandomFileName();
+                else
+                    generatedFileName = outputFileName;
 
                 //Create new excel file based on Excel 97/2003
                 try
@@ -508,82 +398,37 @@ namespace XlReportGenerator
                     else
                         generatedFileName += ".xls";
 
-                    fullFileName = Path.Combine(tempGeneratedFolder, generatedFileName).ToString();
+                    fullFileName = Path.Combine(tempGeneratedFolder, generatedFileName);
 
+                    FileInfo fileOutput = new FileInfo(fullFileName.ToString());
 
-                    if (File.Exists(fullFileName.ToString()))
-                        fsMode = FileMode.Open;
-                    else
-                        fsMode = FileMode.CreateNew;
+                    if (fileOutput.Exists)
+                    {
+                        fileOutput.Delete();
+                        fileOutput = new FileInfo(fullFileName.ToString());
+                    }
+
+                    Int32 maxRow = 0;
 
                     if (String.IsNullOrWhiteSpace(fromTemplateFileName))
                     {
-                        using (FileStream fs = new FileStream(fullFileName.ToString(), fsMode, FileAccess.ReadWrite))
+                        using (ExcelPackage package = new ExcelPackage())
                         {
-                            // Check
-                            if (excelType == EnumExcelType.XLSX)
+                            package.Workbook.Properties.Title = workbookTitle;
+                            package.Workbook.Properties.Author = workbookAuthor;
+                            package.Workbook.Properties.Subject = workbookSubject;
+                            package.Workbook.Properties.Keywords = workbookKeywords;
+
+                            foreach (var data in datas)
                             {
-                                if (fsMode == FileMode.Open)
-                                    wBook = new XSSFWorkbook(fs);
-                                else
-                                    wBook = new XSSFWorkbook();
-
-                                POIXMLProperties xmlProps = ((XSSFWorkbook)wBook).GetProperties();
-                                xmlProps.CoreProperties.Title = workbookTitle;
-                                xmlProps.CoreProperties.Creator = workbookAuthor;
-                                xmlProps.CoreProperties.Subject = workbookSubject;
-                                xmlProps.CoreProperties.Keywords = workbookKeywords;
-                            }
-                            else
-                            {
-                                if (fsMode == FileMode.Open)
-                                    wBook = new HSSFWorkbook(fs);
-                                else
-                                    wBook = new HSSFWorkbook();
-
-
-                                SummaryInformation summaryInformation = ((HSSFWorkbook)wBook).SummaryInformation;
-                                if (summaryInformation == null)
-                                {
-                                    ((HSSFWorkbook)wBook).CreateInformationProperties();
-                                    summaryInformation = ((HSSFWorkbook)wBook).SummaryInformation;
-                                }
-
-                                summaryInformation.Title = workbookTitle;
-                                summaryInformation.Author = workbookAuthor;
-                                summaryInformation.Subject = workbookSubject;
-                                summaryInformation.Keywords = workbookKeywords;
+                                // add a new worksheet to the empty workbook
+                                ExcelWorksheet worksheet = package.Workbook.Worksheets.Add(data.SheetName);
+                                WriteDataToSheet(data.Data, ref worksheet, data.SheetName, 1, 1, out maxRow);
                             }
 
+                            package.SaveAs(fileOutput);
 
-                            //Write data to sheet
-                            Int32 maxRow = 0;
-
-                            try
-                            {
-                                foreach(var data in datas)
-                                {
-                                    WriteDataToSheet(data.Data, ref wBook, data.SheetName, 0, 0, out maxRow);
-                                }
-                                
-                            }
-                            catch
-                            {
-
-                            }
-
-
-                            //Write and close the file.
-                            if (excelType == EnumExcelType.XLSX)
-                            {
-                                XSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
-                            }
-                            else
-                            {
-                                HSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
-                            }
-                            wBook.Write(fs);
-                            fs.Close();
+                            result = 1;
                         }
                     }
                     else
@@ -594,72 +439,180 @@ namespace XlReportGenerator
                             throw new Exception("File template doesn't exists.");
                         }
 
-                        using (FileStream fs = new FileStream(fromTemplateFileName.ToString(), FileMode.Open, FileAccess.ReadWrite))
+                        using (ExcelPackage package = new ExcelPackage(fileTemplate))
                         {
-                            // Check
-                            if (excelType == EnumExcelType.XLSX)
+                            package.Workbook.Properties.Title = workbookTitle;
+                            package.Workbook.Properties.Author = workbookAuthor;
+                            package.Workbook.Properties.Subject = workbookSubject;
+                            package.Workbook.Properties.Keywords = workbookKeywords;
+
+                            foreach (var data in datas)
                             {
-                                wBook = new XSSFWorkbook(fs);
+                                // add a new worksheet to the empty workbook
+                                ExcelWorksheet worksheet = null;
+                                if (package.Workbook.Worksheets.Any(x => x.Name.Equals(data.SheetName)))
+                                    worksheet = package.Workbook.Worksheets[data.SheetName];
+                                else
+                                    worksheet = package.Workbook.Worksheets.Add(data.SheetName);
 
-                                POIXMLProperties xmlProps = ((XSSFWorkbook)wBook).GetProperties();
-                                xmlProps.CoreProperties.Title = workbookTitle;
-                                xmlProps.CoreProperties.Creator = workbookAuthor;
-                                xmlProps.CoreProperties.Subject = workbookSubject;
-                                xmlProps.CoreProperties.Keywords = workbookKeywords;
-                            }
-                            else
-                            {
-                                wBook = new HSSFWorkbook(fs);
-
-                                SummaryInformation summaryInformation = ((HSSFWorkbook)wBook).SummaryInformation;
-                                if (summaryInformation == null)
-                                {
-                                    ((HSSFWorkbook)wBook).CreateInformationProperties();
-                                    summaryInformation = ((HSSFWorkbook)wBook).SummaryInformation;
-                                }
-
-                                summaryInformation.Title = workbookTitle;
-                                summaryInformation.Author = workbookAuthor;
-                                summaryInformation.Subject = workbookSubject;
-                                summaryInformation.Keywords = workbookKeywords;
+                                WriteDataToSheet(data.Data, ref worksheet, data.SheetName, 1, 1, out maxRow);
                             }
 
-                            //Write data to sheet
-                            Int32 maxRow = 0;
+                            package.SaveAs(fileOutput);
 
-                            try
-                            {
-                                foreach(var data in datas)
-                                {
-                                    WriteDataToSheet(data.Data, ref wBook, data.SheetName, 0, 0, out maxRow);
-                                }
-                                
-                            }
-                            catch
-                            {
-
-                            }
-
-
-                            //Write and close the file.
-                            FileStream fsOut = new FileStream(fullFileName, FileMode.CreateNew, FileAccess.ReadWrite);
-                            if (excelType == EnumExcelType.XLSX)
-                            {
-                                XSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
-                            }
-                            else
-                            {
-                                HSSFFormulaEvaluator.EvaluateAllFormulaCells(wBook);
-                            }
-                            wBook.Write(fsOut);
-                            fs.Close();
-                            fsOut.Close();
+                            result = 1;
                         }
                     }
+
                 }
                 catch
                 {
                     throw;
+                }
+            }
+
+            return result;
+        }
+
+
+        public static Int32 WriteRawToFile(IEnumerable<RawDataWrapper> datas,
+            string sheetName,
+            string tempGeneratedFolder,
+            out string generatedFileName,
+            string workbookTitle,
+            string workbookAuthor,
+            string workbookSubject,
+            string workbookKeywords,
+            string fromTemplateFileName = "",
+            string templatePassword = "",
+            string outputFileName = "",
+            int startCol = 1,
+            int startRow = 1,
+            EnumExcelType excelType = EnumExcelType.XLSX)
+        {
+            Int32 result = 0;
+            String fullFileName;
+            generatedFileName = String.Empty;
+
+            if (datas == null)
+                return 0;
+
+            if (ValidateTempGeneratedFolder(tempGeneratedFolder))
+            {
+                if (String.IsNullOrWhiteSpace(outputFileName))
+                    generatedFileName = GenerateRandomFileName();
+                else
+                    generatedFileName = outputFileName;
+
+                //Create new excel file based on Excel 97/2003
+                try
+                {
+                    if (excelType == EnumExcelType.XLSX)
+                        generatedFileName += ".xlsx";
+                    else
+                        generatedFileName += ".xls";
+
+                    fullFileName = Path.Combine(tempGeneratedFolder, generatedFileName);
+
+                    FileInfo fileOutput = new FileInfo(fullFileName.ToString());
+
+                    if (fileOutput.Exists)
+                    {
+                        fileOutput.Delete();
+                        fileOutput = new FileInfo(fullFileName.ToString());
+                    }
+
+                    Int32 maxRow = 0;
+
+                    if (String.IsNullOrWhiteSpace(fromTemplateFileName))
+                    {
+                        using (ExcelPackage package = new ExcelPackage())
+                        {
+                            package.Workbook.Properties.Title = workbookTitle;
+                            package.Workbook.Properties.Author = workbookAuthor;
+                            package.Workbook.Properties.Subject = workbookSubject;
+                            package.Workbook.Properties.Keywords = workbookKeywords;
+
+                            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add(sheetName);
+
+                            foreach (var data in datas)
+                            {
+                                // add a new worksheet to the empty workbook
+                                Int32 col = GetColumnIndex(Regex.Replace(data.Cell, @"[0-9\s]", String.Empty));
+                                Int32 row = Int32.Parse(Regex.Replace(data.Cell, @"[A-Za-z\s]", String.Empty));
+                                WriteToCell(ref worksheet, row, col, data.Value, "");
+                            }
+
+                            package.SaveAs(fileOutput);
+
+                            result = 1;
+                        }
+                    }
+                    else
+                    {
+                        FileInfo fileTemplate = new FileInfo(fromTemplateFileName);
+                        if (!fileTemplate.Exists)
+                        {
+                            throw new Exception("File template doesn't exists.");
+                        }
+
+                        using (ExcelPackage package = new ExcelPackage(fileTemplate))
+                        {
+                            package.Workbook.Properties.Title = workbookTitle;
+                            package.Workbook.Properties.Author = workbookAuthor;
+                            package.Workbook.Properties.Subject = workbookSubject;
+                            package.Workbook.Properties.Keywords = workbookKeywords;
+
+                            // add a new worksheet to the empty workbook
+                            ExcelWorksheet worksheet = null;
+                            if (package.Workbook.Worksheets.Any(x => x.Name.Equals(sheetName)))
+                                worksheet = package.Workbook.Worksheets[sheetName];
+                            else
+                                worksheet = package.Workbook.Worksheets.Add(sheetName);
+
+                            foreach (var data in datas)
+                            {
+
+                                Int32 col = GetColumnIndex(Regex.Replace(data.Cell, @"[0-9\s]", String.Empty));
+                                Int32 row = Int32.Parse(Regex.Replace(data.Cell, @"[A-Za-z\s]", String.Empty));
+                                WriteToCell(ref worksheet, row, col, data.Value, "");
+                            }
+
+                            package.SaveAs(fileOutput);
+
+                            result = 1;
+                        }
+                    }
+
+                }
+                catch
+                {
+                    throw;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Convert column name (in alphabet) into column number
+        /// </summary>
+        /// <param name="columnName"></param>
+        /// <returns></returns>
+        private static Int32 GetColumnIndex(String columnName)
+        {
+            Int32 result = 0;
+
+            Int32 columnNameLength = columnName.Length;
+
+            if (!String.IsNullOrWhiteSpace(columnName))
+            {
+                for (Int32 i = 0; i < columnNameLength; i++)
+                {
+                    if (i == 0)
+                        result += (Convert.ToByte(columnName[columnNameLength - i - 1]) - 64);
+                    else
+                        result += 26 * i * (Convert.ToByte(columnName[columnNameLength - i - 1]) - 64);
                 }
             }
 

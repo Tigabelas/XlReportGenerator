@@ -204,7 +204,7 @@ namespace XlReportGenerator.Test
             };
             
             String generatedReportFileName;
-            XlReportGenerator.Generate(datas, "D:\\Test", "Sheet1", out generatedReportFileName, "Test", "Yusak", "Test Subject", "Test Keywords", @"D:\\Test\\Template.xlsx","", EnumExcelType.XLSX);
+            XlReportGenerator.Generate(datas, "D:\\Test", "Sheet1", out generatedReportFileName, "Test", "Yusak", "Test Subject", "Test Keywords", @"D:\\Test\\Template.xlsx","");
         }
     }
 }

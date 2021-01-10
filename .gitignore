@@ -1,0 +1,6 @@
+.vs/
+XlReportGenerator/bin/
+XlReportGenerator/obj/
+XlReportGenerator.Test/bin/
+XlReportGenerator.Test/obj/
+packages/
