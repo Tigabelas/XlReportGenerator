@@ -101,6 +101,17 @@ namespace XlReportGenerator
                     wBook.Cells[row, col].Value = ((DateTime)data).ToString("dd MMM yyyy hh:mm:ss");
                 }
             }
+            else if (dataType.Equals(typeof(DateTimeOffset)))
+            {
+                if (!String.IsNullOrWhiteSpace(fieldFormat))
+                {
+                    wBook.Cells[row, col].Value = ((DateTimeOffset)data).ToString(fieldFormat);
+                }
+                else
+                {
+                    wBook.Cells[row, col].Value = ((DateTimeOffset)data).ToString("dd MMM yyyy hh:mm:ss");
+                }
+            }
             else if (dataType.Equals(typeof(String)))
             {
                 if (isHyperlink == false)

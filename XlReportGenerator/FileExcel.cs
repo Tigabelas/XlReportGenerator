@@ -85,7 +85,7 @@ namespace XlReportGenerator
 
                                         if (curRow == startRow)
                                         {
-                                            mappedColumnToPropertyIndex = MapHeaderToPropertyIndex(objT, columnContents);
+                                            mappedColumnToPropertyIndex = MapHeaderToPropertyIndex(objT, columnContents, startColumn);
                                         }
                                         else
                                         {
@@ -146,7 +146,7 @@ namespace XlReportGenerator
         /// <param name="obj"></param>
         /// <param name="colNames"></param>
         /// <returns></returns>
-        private static Dictionary<String, Int32> MapHeaderToPropertyIndex(Object obj, ArrayList colNames)
+        private static Dictionary<String, Int32> MapHeaderToPropertyIndex(Object obj, ArrayList colNames, Int32 startColumn=1)
         {
             Dictionary<String, Int32> result = new Dictionary<String, Int32>();
 
@@ -160,7 +160,7 @@ namespace XlReportGenerator
 
                         if (colName.ToUpper().Equals(obj.GetType().GetProperties()[j].Name.ToUpper()))
                         {
-                            result.Add((i + 1).ToString(), j);
+                            result.Add((i + startColumn).ToString(), j);
                             break;
                         }
                     }
