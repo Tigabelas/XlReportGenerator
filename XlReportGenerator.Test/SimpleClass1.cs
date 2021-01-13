@@ -14,7 +14,7 @@ namespace XlReportGenerator.Test
         [ColumnName("Kolom 2")]
         public String Field2 { get; set; }
 
-        [Skipped("Sheet1")]
+        [Skipped("Sheet1, Sheet2")]
         public String Field3 { get; set; }
 
         [ColumnName("Kolom 4")]

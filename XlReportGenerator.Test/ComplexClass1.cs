@@ -9,7 +9,9 @@ namespace XlReportGenerator.Test
     public class ComplexClass1
     {
         public SimpleClass1 SC1 { get; set; }
+
         public SimpleClass2 SC2 { get; set; }
+
         [ColumnName("Kolom 1")]
         public String SC3 { get; set; }
     }

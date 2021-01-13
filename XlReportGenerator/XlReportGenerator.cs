@@ -193,7 +193,7 @@ namespace XlReportGenerator
                             Object fieldValue = propInfo.GetValue(data);
                             Type dataType = data.GetType();
 
-                            if (skippedAttribute == null || (skippedAttribute != null && skippedAttribute.IsSkipped(sheetName)))
+                            if (skippedAttribute == null || (skippedAttribute != null && !skippedAttribute.IsSkipped(sheetName)))
                             {
                                 bool isTypeNullable = false;
 
