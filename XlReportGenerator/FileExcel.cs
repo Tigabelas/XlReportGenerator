@@ -12,7 +12,7 @@ namespace XlReportGenerator
 {
     public class FileExcel
     {
-        public static List<T> ReadWorksheet<T>(String fileName, String sheetName, String cellRange)
+        public static List<T> ReadWorksheet<T>(String fileName, String sheetName, String cellRange, Boolean stopWhenRowNull=true)
              where T : new()
         {
             List<T> result = new List<T>();
@@ -54,7 +54,9 @@ namespace XlReportGenerator
                                 int curRow = startRow;
                                 bool isAllColumnNull = false;
 
-                                while (!isAllColumnNull)
+                                while ((stopWhenRowNull == true && !isAllColumnNull)
+                                        || (stopWhenRowNull == false && curRow <= endRow)
+                                      )
                                 {
                                     try
                                     {
