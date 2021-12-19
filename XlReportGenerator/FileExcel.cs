@@ -158,7 +158,17 @@ namespace XlReportGenerator
                 {
                     for (var j = 0; j < obj.GetType().GetProperties().Count(); j++)  // loop for all property inside the object
                     {
-                        String colName = colNames[i].ToString().Replace(" ", String.Empty).Replace(".", String.Empty).Replace("-", String.Empty).Replace("(", String.Empty).Replace(")", String.Empty).Replace("/", String.Empty);
+                        String colName = colNames[i].ToString()
+                            .Replace(" ", String.Empty)
+                            .Replace(".", String.Empty)
+                            .Replace("-", String.Empty)
+                            .Replace("(", String.Empty)
+                            .Replace(")", String.Empty)
+                            .Replace("/", String.Empty)
+                            .Replace("+", String.Empty)
+                            .Replace("\n", String.Empty)
+                            .Replace("\r", String.Empty)
+                            .Replace("\t", String.Empty);
 
                         if (colName.ToUpper().Equals(obj.GetType().GetProperties()[j].Name.ToUpper()))
                         {

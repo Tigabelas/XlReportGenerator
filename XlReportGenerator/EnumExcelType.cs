@@ -10,6 +10,7 @@ namespace XlReportGenerator
     {
         NONE=0,
         XLS=1,
-        XLSX=2
+        XLSX=2,
+        XLSM=3
     }
 }

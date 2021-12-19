@@ -301,8 +301,10 @@ namespace XlReportGenerator
 
                     if (excelType == EnumExcelType.XLSX)
                         generatedFileName += ".xlsx";
-                    else
+                    else if (excelType == EnumExcelType.XLS)
                         generatedFileName += ".xls";
+                    else if (excelType == EnumExcelType.XLSM)
+                        generatedFileName += ".xlsm";
 
                     fullFileName = Path.Combine(tempGeneratedFolder, generatedFileName);
 
@@ -406,8 +408,10 @@ namespace XlReportGenerator
                 {
                     if (excelType == EnumExcelType.XLSX)
                         generatedFileName += ".xlsx";
-                    else
+                    else if (excelType == EnumExcelType.XLS)
                         generatedFileName += ".xls";
+                    else if (excelType == EnumExcelType.XLSM)
+                        generatedFileName += ".xlsm";
 
                     fullFileName = Path.Combine(tempGeneratedFolder, generatedFileName);
 
@@ -520,8 +524,10 @@ namespace XlReportGenerator
                 {
                     if (excelType == EnumExcelType.XLSX)
                         generatedFileName += ".xlsx";
-                    else
+                    else if (excelType == EnumExcelType.XLS)
                         generatedFileName += ".xls";
+                    else if (excelType == EnumExcelType.XLSM)
+                        generatedFileName += ".xlsm";
 
                     fullFileName = Path.Combine(tempGeneratedFolder, generatedFileName);
 
